@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">EasyMarketApp</string>
+    <string name="dietary_preferences">Preferencias Dietéticas</string>
+    <string name="vegetarian">Vegetariano</string>
+    <string name="celiac">Celiaco</string>
+    <string name="select_budget">Selecciona Tu Presupuesto</string>
+    <string name="budget_hint">Ingresa tu presupuesto</string>
+    <string name="start">Comenzar</string>
 </resources>
