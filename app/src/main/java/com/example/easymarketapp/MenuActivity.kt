@@ -1,21 +1,22 @@
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.CheckBox
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.easymarketapp.R
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.checkbox.MaterialCheckBox
+import com.google.android.material.textfield.TextInputEditText
 
 class MenuActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_menu)
-        val comenzarButton: Button = findViewById(R.id.comenzarButton)
-        val vegetarianoCheckBox: CheckBox = findViewById(R.id.vegetarianoCheckBox)
-        val celiacoCheckBox: CheckBox = findViewById(R.id.celiacoCheckBox)
-        val presupuestoEditText: EditText = findViewById(R.id.presupuestoEditText)
+
+        val comenzarButton: MaterialButton = findViewById(R.id.buttonStart)
+        val vegetarianoCheckBox: MaterialCheckBox = findViewById(R.id.checkboxVegetarian)
+        val celiacoCheckBox: MaterialCheckBox = findViewById(R.id.checkboxCeliac)
+        val presupuestoEditText: TextInputEditText = findViewById(R.id.editTextBudget)
 
         comenzarButton.setOnClickListener {
             val isVegetariano = vegetarianoCheckBox.isChecked
