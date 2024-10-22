@@ -1,3 +1,4 @@
+package com.example.easymarketapp
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -32,7 +33,7 @@ class MenuActivity : AppCompatActivity() {
                 append("Opciones seleccionadas:\n")
                 if (isVegetariano) append("- Vegetariano\n")
                 if (isCeliaco) append("- Celiaco\n")
-                append("Presupuesto: $${String.format("%.2f", presupuesto)}")
+                append("Presupuesto: $${String.format("%.3f", presupuesto)}")
             }
 
             Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show()

@@ -1,3 +1,4 @@
+package com.example.easymarketapp
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageButton
@@ -10,6 +11,7 @@ import com.example.easymarketapp.R
 import com.example.easymarketapp.adapter.ProductAdapter
 import com.example.easymarketapp.model.Product
 import com.example.easymarketapp.repository.ProductRepository
+import android.content.Intent
 
 class ListadoActivity : AppCompatActivity() {
     private lateinit var backButton: ImageButton
@@ -94,6 +96,6 @@ class ListadoActivity : AppCompatActivity() {
         }
 
         val totalAmount = currentProducts.sumOf { it.price }
-        totalTextView.text = "Total: $${String.format("%.2f", totalAmount)}"
+        totalTextView.text = "Total: $${String.format("%.3f", totalAmount)}"
     }
 }

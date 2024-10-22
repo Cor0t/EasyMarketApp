@@ -28,7 +28,7 @@ class ProductAdapter(
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         val product = products[position]
         holder.nameTextView.text = product.name
-        holder.priceTextView.text = "$${String.format("%.2f", product.price)}"
+        holder.priceTextView.text = "$${String.format("%.3f", product.price)}"
 
         val tags = mutableListOf<String>().apply {
             if (product.isVegetarian) add("Vegetariano")
