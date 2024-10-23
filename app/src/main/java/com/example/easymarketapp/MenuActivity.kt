@@ -3,10 +3,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.easymarketapp.R
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.textfield.TextInputEditText
+import java.text.NumberFormat
+import java.util.Locale
 
 class MenuActivity : AppCompatActivity() {
 
@@ -33,7 +34,7 @@ class MenuActivity : AppCompatActivity() {
                 append("Opciones seleccionadas:\n")
                 if (isVegetariano) append("- Vegetariano\n")
                 if (isCeliaco) append("- Celiaco\n")
-                append("Presupuesto: $${String.format("%.3f", presupuesto)}")
+                append("Presupuesto: $${NumberFormat.getNumberInstance(Locale("CL")).format(presupuesto)}")
             }
 
             Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show()
