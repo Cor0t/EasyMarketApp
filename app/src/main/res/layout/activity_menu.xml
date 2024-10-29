@@ -51,16 +51,10 @@
                         android:textAppearance="?attr/textAppearanceHeadline6" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
-                        android:id="@+id/checkboxVegetarian"
+                        android:id="@+id/checkboxLactoseIntolerant"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/vegetarian" />
-
-                    <com.google.android.material.checkbox.MaterialCheckBox
-                        android:id="@+id/checkboxCeliac"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/celiac" />
+                        android:text="@string/lactose_intolerant" />
 
                 </LinearLayout>
 

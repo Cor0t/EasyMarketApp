@@ -1,10 +1,12 @@
 package com.example.easymarketapp.model
 
 data class Product(
-    val id: Int,
-    val name: String,
-    val price: Double,
-    val isVegetarian: Boolean = false,
-    val isCeliacFriendly: Boolean = false,
-    val imageUrl: String? = null
-)
+    val sku: String = "",
+    val nombre: String = "",
+    val marca: String = "",
+    val precio: Double = 0.0,
+    val imagen: String = "",
+    val pagina: Int = 0,
+    var islactoseIntolerant: Boolean = false,
+
+    )

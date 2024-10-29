@@ -4,9 +4,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.easymarketapp.R
 import com.example.easymarketapp.model.Product
+import com.bumptech.glide.Glide
 
 class ProductAdapter(
     private var products: List<Product>,
@@ -15,8 +17,10 @@ class ProductAdapter(
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val nameTextView: TextView = view.findViewById(R.id.productNameTextView)
+        val brandTextView: TextView = view.findViewById(R.id.productBrandTextView)
         val priceTextView: TextView = view.findViewById(R.id.productPriceTextView)
         val tagsTextView: TextView = view.findViewById(R.id.productTagsTextView)
+        val productImageView: ImageView = view.findViewById(R.id.productImageView)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
@@ -27,14 +31,20 @@ class ProductAdapter(
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
         val product = products[position]
-        holder.nameTextView.text = product.name
-        holder.priceTextView.text = "$${String.format("%.3f", product.price)}"
 
-        val tags = mutableListOf<String>().apply {
-            if (product.isVegetarian) add("Vegetariano")
-            if (product.isCeliacFriendly) add("Sin Gluten")
-        }
-        holder.tagsTextView.text = tags.joinToString(" • ")
+        holder.nameTextView.text = product.nombre
+        holder.brandTextView.text = product.marca
+        holder.priceTextView.text = "$${String.format("%.0f", product.precio)}"
+
+        // Mostrar etiqueta de sin lactosa si aplica
+        holder.tagsTextView.text = if (product.islactoseIntolerant) "Sin Lactosa" else ""
+
+        // Cargar imagen usando Glide
+        Glide.with(holder.itemView.context)
+            .load(product.imagen)
+            .placeholder(R.drawable.placeholder_image) // Asegúrate de tener esta imagen
+            .error(R.drawable.error_image) // Asegúrate de tener esta imagen
+            .into(holder.productImageView)
 
         holder.itemView.setOnClickListener { onProductClick(product) }
     }

@@ -16,13 +16,11 @@ class MenuActivity : AppCompatActivity() {
         setContentView(R.layout.activity_menu)
 
         val comenzarButton: MaterialButton = findViewById(R.id.buttonStart)
-        val vegetarianoCheckBox: MaterialCheckBox = findViewById(R.id.checkboxVegetarian)
-        val celiacoCheckBox: MaterialCheckBox = findViewById(R.id.checkboxCeliac)
+        val lactoseIntolerantCheckBox: MaterialCheckBox = findViewById(R.id.checkboxLactoseIntolerant)
         val presupuestoEditText: TextInputEditText = findViewById(R.id.editTextBudget)
 
         comenzarButton.setOnClickListener {
-            val isVegetariano = vegetarianoCheckBox.isChecked
-            val isCeliaco = celiacoCheckBox.isChecked
+            val isLactoseIntolerant = lactoseIntolerantCheckBox.isChecked
             val presupuesto = presupuestoEditText.text.toString().toDoubleOrNull()
 
             if (presupuesto == null) {
@@ -32,8 +30,7 @@ class MenuActivity : AppCompatActivity() {
 
             val mensaje = buildString {
                 append("Opciones seleccionadas:\n")
-                if (isVegetariano) append("- Vegetariano\n")
-                if (isCeliaco) append("- Celiaco\n")
+                if (isLactoseIntolerant) append("- Intolerante a la lactosa\n")
                 append("Presupuesto: $${NumberFormat.getNumberInstance(Locale("CL")).format(presupuesto)}")
             }
 
@@ -42,9 +39,8 @@ class MenuActivity : AppCompatActivity() {
             // Create an Intent to start ListadoActivity
             val intent = Intent(this, ListadoActivity::class.java)
 
-            // Pass data to ListadoActivity if needed
-            intent.putExtra("isVegetariano", isVegetariano)
-            intent.putExtra("isCeliaco", isCeliaco)
+            // Pass data to ListadoActivity
+            intent.putExtra("isLactoseIntolerant", isLactoseIntolerant)
             intent.putExtra("presupuesto", presupuesto)
 
             // Start ListadoActivity

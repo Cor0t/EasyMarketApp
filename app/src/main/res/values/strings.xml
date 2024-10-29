@@ -6,4 +6,13 @@
     <string name="select_budget">Selecciona Tu Presupuesto</string>
     <string name="budget_hint">Ingresa tu presupuesto</string>
     <string name="start">Comenzar</string>
+
+
+    <string name="similar_options">Opciones similares</string>
+    <string name="accept">Aceptar</string>
+    <string name="lactose_intolerant">Intolerante a la lactosa</string>
+    <string name="products_list">Lista de Productos</string>
+    <string name="products_list_lactose_free">Productos Sin Lactosa</string>
+    <string name="total_format">Total: $%s</string>
+
 </resources>
