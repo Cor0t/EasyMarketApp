@@ -32,12 +32,33 @@
             android:layout_height="wrap_content"
             android:padding="16dp">
 
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/filterCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/productsRecyclerView">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/sinLactosaSwitch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:text="Sin Lactosa"
+                    android:textSize="16sp"
+                    android:checked="false" />
+
+            </com.google.android.material.card.MaterialCardView>
+
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/productsRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:clipToPadding="false"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/filterCard"
                 app:layout_constraintBottom_toTopOf="@id/totalCard"/>
 
             <com.google.android.material.card.MaterialCardView

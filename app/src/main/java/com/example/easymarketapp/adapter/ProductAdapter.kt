@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.easymarketapp.R
 import com.example.easymarketapp.model.Producto
 import com.bumptech.glide.Glide
+import com.google.android.material.chip.Chip
 
 class ProductAdapter(
     private var products: List<Producto>,
@@ -19,7 +20,7 @@ class ProductAdapter(
         val nameTextView: TextView = view.findViewById(R.id.productNameTextView)
         val brandTextView: TextView = view.findViewById(R.id.productBrandTextView)
         val priceTextView: TextView = view.findViewById(R.id.productPriceTextView)
-        val tagsTextView: TextView = view.findViewById(R.id.productTagsTextView)
+        val tagChip: Chip = view.findViewById(R.id.productTagsTextView)
         val productImageView: ImageView = view.findViewById(R.id.productImageView)
     }
 
@@ -36,14 +37,19 @@ class ProductAdapter(
         holder.brandTextView.text = product.marca
         holder.priceTextView.text = "$${String.format("%.0f", product.precio)}"
 
-        // Mostrar etiqueta de sin lactosa si aplica
-        holder.tagsTextView.text = if (product.islactoseIntolerant) "Sin Lactosa" else ""
+        // Manejar el chip de Sin Lactosa
+        if (product.islactoseIntolerant) {
+            holder.tagChip.visibility = View.VISIBLE
+            holder.tagChip.text = "Sin Lactosa"
+        } else {
+            holder.tagChip.visibility = View.GONE
+        }
 
         // Cargar imagen usando Glide
         Glide.with(holder.itemView.context)
             .load(product.imagen)
-            .placeholder(R.drawable.placeholder_image) // Asegúrate de tener esta imagen
-            .error(R.drawable.error_image) // Asegúrate de tener esta imagen
+            .placeholder(R.drawable.placeholder_image)
+            .error(R.drawable.error_image)
             .into(holder.productImageView)
 
         holder.itemView.setOnClickListener { onProductClick(product) }

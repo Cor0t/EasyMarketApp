@@ -13,6 +13,7 @@ import com.example.easymarketapp.repository.FirebaseProductRepository
 import android.content.Intent
 import androidx.appcompat.widget.Toolbar
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.switchmaterial.SwitchMaterial
 import kotlinx.coroutines.launch
 
 class ListadoActivity : AppCompatActivity() {
@@ -22,11 +23,13 @@ class ListadoActivity : AppCompatActivity() {
     private lateinit var totalTextView: TextView
     private lateinit var verOpcionesSimilaresButton: MaterialButton
     private lateinit var aceptarButton: MaterialButton
+    private lateinit var sinLactosaSwitch: SwitchMaterial
 
     // Adapter y Repository
     private lateinit var productAdapter: ProductAdapter
     private val productRepository = FirebaseProductRepository()
-    private var currentProducts: List<Producto> = emptyList()
+    private var selectedProducts: MutableList<Producto> = mutableListOf()
+    private var allProducts: List<Producto> = emptyList()
 
     // Presupuesto
     private var presupuesto: Double = 0.0
@@ -36,7 +39,6 @@ class ListadoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_listado)
 
-        // Obtener el presupuesto del intent
         presupuesto = intent.getDoubleExtra("presupuesto", 0.0)
 
         initializeViews()
@@ -52,6 +54,7 @@ class ListadoActivity : AppCompatActivity() {
         totalTextView = findViewById(R.id.totalTextView)
         verOpcionesSimilaresButton = findViewById(R.id.verOpcionesSimilaresButton)
         aceptarButton = findViewById(R.id.aceptarButton)
+        sinLactosaSwitch = findViewById(R.id.sinLactosaSwitch)
     }
 
     private fun setupToolbar() {
@@ -68,7 +71,7 @@ class ListadoActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        productAdapter = ProductAdapter(currentProducts) { product ->
+        productAdapter = ProductAdapter(allProducts) { product ->
             handleProductSelection(product)
         }
 
@@ -84,8 +87,7 @@ class ListadoActivity : AppCompatActivity() {
 
         if (newTotal <= presupuesto) {
             currentTotal = newTotal
-            currentProducts = currentProducts + product
-            productAdapter.updateProducts(currentProducts)
+            selectedProducts.add(product)
             updateTotal()
             Toast.makeText(
                 this,
@@ -107,54 +109,39 @@ class ListadoActivity : AppCompatActivity() {
                 if (products.isEmpty()) {
                     Toast.makeText(this@ListadoActivity, "No se encontraron productos en la base de datos", Toast.LENGTH_LONG).show()
                 } else {
-                    // Primero filtramos productos que individualmente no excedan el presupuesto
-                    val availableProducts = products.filter { it.precio <= presupuesto }
-
-                    if (availableProducts.isEmpty()) {
-                        Toast.makeText(
-                            this@ListadoActivity,
-                            "No hay productos disponibles dentro del presupuesto establecido",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        return@getAllProducts
-                    }
-
-                    // Ordenamos los productos por precio (de menor a mayor)
-                    val sortedProducts = availableProducts.sortedBy { it.precio }
-
-                    // Lista para almacenar los productos seleccionados
-                    val selectedProducts = mutableListOf<Producto>()
-                    var currentSum = 0.0
-
-                    // Iteramos sobre los productos ordenados
-                    for (product in sortedProducts) {
-                        // Si agregar este producto no excede el presupuesto, lo añadimos
-                        if (currentSum + product.precio <= presupuesto) {
-                            selectedProducts.add(product)
-                            currentSum += product.precio
-                        }
-                    }
-
-                    if (selectedProducts.isEmpty()) {
-                        Toast.makeText(
-                            this@ListadoActivity,
-                            "No se encontró una combinación de productos dentro del presupuesto",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        // Actualizar el RecyclerView con los productos seleccionados
-                        productAdapter.updateProducts(selectedProducts)
-
-                        // Opcional: Mostrar el total gastado
-                        Toast.makeText(
-                            this@ListadoActivity,
-                            "Total: $${String.format("%.2f", currentSum)} de $$presupuesto",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    allProducts = products
+                    filterAndDisplayProducts()
                 }
             }
         }
+    }
+
+    private fun filterAndDisplayProducts() {
+        // Filtrar por presupuesto
+        var filteredProducts = allProducts.filter { it.precio <= presupuesto }
+
+        // Aplicar filtro sin lactosa si está activado
+        if (sinLactosaSwitch.isChecked) {
+            filteredProducts = filteredProducts.filter { producto ->
+                producto.nombre.lowercase().contains("sin lactosa") ||
+                        producto.nombre.lowercase().contains("sinlactosa") ||
+                        producto.nombre.lowercase().contains("deslactosado") ||
+                        producto.nombre.lowercase().contains("lactose free")
+            }
+        }
+
+        if (filteredProducts.isEmpty()) {
+            Toast.makeText(
+                this@ListadoActivity,
+                "No hay productos disponibles con los filtros actuales",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+
+        // Ordenar productos por precio
+        val sortedProducts = filteredProducts.sortedBy { it.precio }
+        productAdapter.updateProducts(sortedProducts)
+        updateTotal()
     }
 
     private fun updateTotal() {
@@ -173,11 +160,15 @@ class ListadoActivity : AppCompatActivity() {
         aceptarButton.setOnClickListener {
             setResultAndFinish()
         }
+
+        sinLactosaSwitch.setOnCheckedChangeListener { _, _ ->
+            filterAndDisplayProducts()
+        }
     }
 
     private fun setResultAndFinish() {
         val intent = Intent().apply {
-            putExtra("selectedProducts", currentProducts.size)
+            putExtra("selectedProducts", selectedProducts.size)
             putExtra("totalAmount", currentTotal)
         }
         setResult(RESULT_OK, intent)
