@@ -11,7 +11,7 @@ import com.example.easymarketapp.model.Producto
 import com.bumptech.glide.Glide
 
 class ProductAdapter(
-    private var productos: List<Producto>,
+    private var products: List<Producto>,
     private val onProductClick: (Producto) -> Unit
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
@@ -30,7 +30,7 @@ class ProductAdapter(
     }
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
-        val product = productos[position]
+        val product = products[position]
 
         holder.nameTextView.text = product.nombre
         holder.brandTextView.text = product.marca
@@ -49,10 +49,10 @@ class ProductAdapter(
         holder.itemView.setOnClickListener { onProductClick(product) }
     }
 
-    override fun getItemCount() = productos.size
+    override fun getItemCount() = products.size
 
-    fun updateProducts(newProductos: List<Producto>) {
-        productos = newProductos
+    fun updateProducts(newProducts: List<Producto>) {
+        products = newProducts
         notifyDataSetChanged()
     }
 }
