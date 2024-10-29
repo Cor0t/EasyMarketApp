@@ -8,7 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.easymarketapp.adapter.ProductAdapter
-import com.example.easymarketapp.model.Product
+import com.example.easymarketapp.model.Producto
 import com.example.easymarketapp.repository.FirebaseProductRepository
 import android.content.Intent
 import androidx.appcompat.widget.Toolbar
@@ -26,7 +26,7 @@ class ListadoActivity : AppCompatActivity() {
     // Adapter y Repository
     private lateinit var productAdapter: ProductAdapter
     private val productRepository = FirebaseProductRepository()
-    private var currentProducts: List<Product> = emptyList()
+    private var currentProductos: List<Producto> = emptyList()
 
     // Filtros
     private var isLactoseIntolerant = false
@@ -105,7 +105,7 @@ class ListadoActivity : AppCompatActivity() {
                     ).show()
                 }
 
-                currentProducts = products
+                currentProductos = products
                 productAdapter.updateProducts(products)
                 updateTotal()
             }
@@ -113,7 +113,7 @@ class ListadoActivity : AppCompatActivity() {
     }
 
     private fun updateTotal() {
-        val totalAmount = currentProducts.sumOf { it.precio }
+        val totalAmount = currentProductos.sumOf { it.precio }
         val formattedTotal = String.format("%.0f", totalAmount)
         totalTextView.text = getString(R.string.total_format, formattedTotal)
 
@@ -129,7 +129,7 @@ class ListadoActivity : AppCompatActivity() {
         }
 
         aceptarButton.setOnClickListener {
-            val totalAmount = currentProducts.sumOf { it.precio }
+            val totalAmount = currentProductos.sumOf { it.precio }
             if (totalAmount <= presupuesto) {
                 setResultAndFinish()
             } else {
@@ -144,8 +144,8 @@ class ListadoActivity : AppCompatActivity() {
 
     private fun setResultAndFinish() {
         val intent = Intent().apply {
-            putExtra("selectedProducts", currentProducts.size)
-            putExtra("totalAmount", currentProducts.sumOf { it.precio })
+            putExtra("selectedProducts", currentProductos.size)
+            putExtra("totalAmount", currentProductos.sumOf { it.precio })
         }
         setResult(RESULT_OK, intent)
         finish()

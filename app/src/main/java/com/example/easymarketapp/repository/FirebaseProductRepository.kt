@@ -1,7 +1,7 @@
 package com.example.easymarketapp.repository
 
 import com.google.firebase.firestore.FirebaseFirestore
-import com.example.easymarketapp.model.Product
+import com.example.easymarketapp.model.Producto
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,9 +34,9 @@ class FirebaseProductRepository {
         "nature's heart"
     ).map { it.lowercase() }
 
-    private fun isLactoseFree(product: Product): Boolean {
-        val nombreLower = product.nombre.lowercase()
-        val marcaLower = product.marca.lowercase()
+    private fun isLactoseFree(producto: Producto): Boolean {
+        val nombreLower = producto.nombre.lowercase()
+        val marcaLower = producto.marca.lowercase()
 
         // Verifica si el nombre del producto contiene alguna palabra clave
         val hasLactoseFreeKeyword = lactoseFreeKeywords.any { keyword ->
@@ -54,7 +54,7 @@ class FirebaseProductRepository {
     suspend fun getFilteredProducts(
         isLactoseIntolerant: Boolean,
         presupuesto: Double,
-        callback: (List<Product>) -> Unit
+        callback: (List<Producto>) -> Unit
     ) {
         try {
             withContext(Dispatchers.IO) {
@@ -63,9 +63,9 @@ class FirebaseProductRepository {
                     .get()
                     .await()
 
-                val products = snapshot.documents.mapNotNull { document ->
+                val productos = snapshot.documents.mapNotNull { document ->
                     try {
-                        Product(
+                        Producto(
                             sku = document.getString("sku") ?: "",
                             nombre = document.getString("nombre") ?: "",
                             marca = document.getString("marca") ?: "",
@@ -90,7 +90,7 @@ class FirebaseProductRepository {
                 }
 
                 withContext(Dispatchers.Main) {
-                    callback(products)
+                    callback(productos)
                 }
             }
         } catch (e: Exception) {

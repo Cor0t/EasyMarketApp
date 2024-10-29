@@ -7,12 +7,12 @@ import android.widget.TextView
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.easymarketapp.R
-import com.example.easymarketapp.model.Product
+import com.example.easymarketapp.model.Producto
 import com.bumptech.glide.Glide
 
 class ProductAdapter(
-    private var products: List<Product>,
-    private val onProductClick: (Product) -> Unit
+    private var productos: List<Producto>,
+    private val onProductClick: (Producto) -> Unit
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -30,7 +30,7 @@ class ProductAdapter(
     }
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
-        val product = products[position]
+        val product = productos[position]
 
         holder.nameTextView.text = product.nombre
         holder.brandTextView.text = product.marca
@@ -49,10 +49,10 @@ class ProductAdapter(
         holder.itemView.setOnClickListener { onProductClick(product) }
     }
 
-    override fun getItemCount() = products.size
+    override fun getItemCount() = productos.size
 
-    fun updateProducts(newProducts: List<Product>) {
-        products = newProducts
+    fun updateProducts(newProductos: List<Producto>) {
+        productos = newProductos
         notifyDataSetChanged()
     }
 }

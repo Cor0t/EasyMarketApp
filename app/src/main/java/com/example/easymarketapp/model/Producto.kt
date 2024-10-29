@@ -1,6 +1,6 @@
 package com.example.easymarketapp.model
 
-data class Product(
+data class Producto(
     val sku: String = "",
     val nombre: String = "",
     val marca: String = "",
