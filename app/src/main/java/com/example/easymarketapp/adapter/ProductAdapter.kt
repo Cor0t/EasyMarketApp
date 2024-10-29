@@ -7,12 +7,12 @@ import android.widget.TextView
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.easymarketapp.R
-import com.example.easymarketapp.model.Product
+import com.example.easymarketapp.model.Producto
 import com.bumptech.glide.Glide
 
 class ProductAdapter(
-    private var products: List<Product>,
-    private val onProductClick: (Product) -> Unit
+    private var products: List<Producto>,
+    private val onProductClick: (Producto) -> Unit
 ) : RecyclerView.Adapter<ProductAdapter.ProductViewHolder>() {
 
     class ProductViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -51,7 +51,7 @@ class ProductAdapter(
 
     override fun getItemCount() = products.size
 
-    fun updateProducts(newProducts: List<Product>) {
+    fun updateProducts(newProducts: List<Producto>) {
         products = newProducts
         notifyDataSetChanged()
     }
