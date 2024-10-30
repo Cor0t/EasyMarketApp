@@ -1,39 +1,32 @@
 package com.example.easymarketapp
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.easymarketapp.adapter.ProductAdapter
 import com.example.easymarketapp.model.Producto
 import com.example.easymarketapp.repository.FirebaseProductRepository
-import android.content.Intent
-import androidx.appcompat.widget.Toolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.switchmaterial.SwitchMaterial
 import kotlinx.coroutines.launch
 
 class ListadoActivity : AppCompatActivity() {
-    // Views
     private lateinit var toolbar: Toolbar
     private lateinit var productsRecyclerView: RecyclerView
     private lateinit var totalTextView: TextView
-    private lateinit var verOpcionesSimilaresButton: MaterialButton
-    private lateinit var aceptarButton: MaterialButton
     private lateinit var sinLactosaSwitch: SwitchMaterial
 
-    // Adapter y Repository
     private lateinit var productAdapter: ProductAdapter
     private val productRepository = FirebaseProductRepository()
-    private var selectedProducts: MutableList<Producto> = mutableListOf()
-    private var allProducts: List<Producto> = emptyList()
+    private var filteredProducts: List<Producto> = emptyList()
 
-    // Presupuesto
     private var presupuesto: Double = 0.0
-    private var currentTotal: Double = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,15 +38,13 @@ class ListadoActivity : AppCompatActivity() {
         setupToolbar()
         setupRecyclerView()
         setupListeners()
-        loadAllProducts()
+        loadAndFilterProducts(intent.getBooleanExtra("isLactoseIntolerant", false))
     }
 
     private fun initializeViews() {
         toolbar = findViewById(R.id.toolbar)
         productsRecyclerView = findViewById(R.id.productsRecyclerView)
         totalTextView = findViewById(R.id.totalTextView)
-        verOpcionesSimilaresButton = findViewById(R.id.verOpcionesSimilaresButton)
-        aceptarButton = findViewById(R.id.aceptarButton)
         sinLactosaSwitch = findViewById(R.id.sinLactosaSwitch)
     }
 
@@ -71,10 +62,7 @@ class ListadoActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        productAdapter = ProductAdapter(allProducts) { product ->
-            handleProductSelection(product)
-        }
-
+        productAdapter = ProductAdapter(filteredProducts) { }
         productsRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@ListadoActivity)
             adapter = productAdapter
@@ -82,96 +70,65 @@ class ListadoActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleProductSelection(product: Producto) {
-        val newTotal = currentTotal + product.precio
-
-        if (newTotal <= presupuesto) {
-            currentTotal = newTotal
-            selectedProducts.add(product)
-            updateTotal()
-            Toast.makeText(
-                this,
-                "Agregado: ${product.nombre} - $${String.format("%.0f", product.precio)}",
-                Toast.LENGTH_SHORT
-            ).show()
-        } else {
-            Toast.makeText(
-                this,
-                "No se puede agregar el producto. Excede el presupuesto de $${String.format("%.0f", presupuesto)}",
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
-
-    private fun loadAllProducts() {
+    private fun loadAndFilterProducts(isLactoseIntolerant: Boolean) {
         lifecycleScope.launch {
             productRepository.getAllProducts { products ->
                 if (products.isEmpty()) {
                     Toast.makeText(this@ListadoActivity, "No se encontraron productos en la base de datos", Toast.LENGTH_LONG).show()
                 } else {
-                    allProducts = products
-                    filterAndDisplayProducts()
+                    // Filtrar por presupuesto y preferencia de intolerancia a la lactosa
+                    val filteredProducts = filterProductsByBudgetAndLactose(products, presupuesto, isLactoseIntolerant)
+
+                    // Ordenar productos por precio
+                    val sortedProducts = filteredProducts.sortedBy { it.precio }
+                    this@ListadoActivity.filteredProducts = sortedProducts
+                    productAdapter.updateProducts(sortedProducts)
+                    updateTotal(sortedProducts)
                 }
             }
         }
     }
 
-    private fun filterAndDisplayProducts() {
-        // Filtrar por presupuesto
-        var filteredProducts = allProducts.filter { it.precio <= presupuesto }
+    private fun filterProductsByBudgetAndLactose(products: List<Producto>, budget: Double, isLactoseIntolerant: Boolean): List<Producto> {
+        val filteredProducts = mutableListOf<Producto>()
+        var currentTotal = 0.0
 
-        // Aplicar filtro sin lactosa si está activado
-        if (sinLactosaSwitch.isChecked) {
-            filteredProducts = filteredProducts.filter { producto ->
-                producto.nombre.lowercase().contains("sin lactosa") ||
-                        producto.nombre.lowercase().contains("sinlactosa") ||
-                        producto.nombre.lowercase().contains("deslactosado") ||
-                        producto.nombre.lowercase().contains("lactose free")
+        for (product in products) {
+            if (currentTotal + product.precio <= budget) {
+                if (isLactoseIntolerant) {
+                    if (product.nombre.lowercase().contains("sin lactosa") ||
+                        product.nombre.lowercase().contains("sinlactosa") ||
+                        product.nombre.lowercase().contains("deslactosado") ||
+                        product.nombre.lowercase().contains("lactose free")
+                    ) {
+                        filteredProducts.add(product)
+                        currentTotal += product.precio
+                    }
+                } else {
+                    filteredProducts.add(product)
+                    currentTotal += product.precio
+                }
+            } else {
+                // Se ha alcanzado el presupuesto, no se agregan más productos
+                break
             }
         }
 
-        if (filteredProducts.isEmpty()) {
-            Toast.makeText(
-                this@ListadoActivity,
-                "No hay productos disponibles con los filtros actuales",
-                Toast.LENGTH_LONG
-            ).show()
-        }
-
-        // Ordenar productos por precio
-        val sortedProducts = filteredProducts.sortedBy { it.precio }
-        productAdapter.updateProducts(sortedProducts)
-        updateTotal()
+        return filteredProducts
     }
 
-    private fun updateTotal() {
+    private fun updateTotal(products: List<Producto>) {
+        val total = products.sumOf { it.precio }
         totalTextView.text = getString(
             R.string.total_format_with_budget,
-            String.format("%.0f", currentTotal),
+            String.format("%.0f", total),
             String.format("%.0f", presupuesto)
         )
     }
 
     private fun setupListeners() {
-        verOpcionesSimilaresButton.setOnClickListener {
-            Toast.makeText(this, "Buscando opciones similares...", Toast.LENGTH_SHORT).show()
-        }
-
-        aceptarButton.setOnClickListener {
-            setResultAndFinish()
-        }
-
         sinLactosaSwitch.setOnCheckedChangeListener { _, _ ->
-            filterAndDisplayProducts()
+            loadAndFilterProducts(sinLactosaSwitch.isChecked)
         }
-    }
-
-    private fun setResultAndFinish() {
-        val intent = Intent().apply {
-            putExtra("selectedProducts", selectedProducts.size)
-            putExtra("totalAmount", currentTotal)
-        }
-        setResult(RESULT_OK, intent)
-        finish()
     }
 }
