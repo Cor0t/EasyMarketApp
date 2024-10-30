@@ -17,15 +17,14 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import kotlinx.coroutines.launch
 
 class ListadoActivity : AppCompatActivity() {
+    //Se establecen los elementos de activity_listado
     private lateinit var toolbar: Toolbar
     private lateinit var productsRecyclerView: RecyclerView
     private lateinit var totalTextView: TextView
     private lateinit var sinLactosaSwitch: SwitchMaterial
-
     private lateinit var productAdapter: ProductAdapter
     private val productRepository = FirebaseProductRepository()
     private var filteredProducts: List<Producto> = emptyList()
-
     private var presupuesto: Double = 0.0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,7 +39,7 @@ class ListadoActivity : AppCompatActivity() {
         setupListeners()
         loadAndFilterProducts(intent.getBooleanExtra("isLactoseIntolerant", false))
     }
-
+    //Inicia los elementos de la interfaz
     private fun initializeViews() {
         toolbar = findViewById(R.id.toolbar)
         productsRecyclerView = findViewById(R.id.productsRecyclerView)
@@ -48,6 +47,7 @@ class ListadoActivity : AppCompatActivity() {
         sinLactosaSwitch = findViewById(R.id.sinLactosaSwitch)
     }
 
+    //barra de herramientas
     private fun setupToolbar() {
         setSupportActionBar(toolbar)
         supportActionBar?.apply {
@@ -60,7 +60,7 @@ class ListadoActivity : AppCompatActivity() {
             onBackPressed()
         }
     }
-
+    //Listado de productos
     private fun setupRecyclerView() {
         productAdapter = ProductAdapter(filteredProducts) { }
         productsRecyclerView.apply {
@@ -69,7 +69,7 @@ class ListadoActivity : AppCompatActivity() {
             setHasFixedSize(true)
         }
     }
-
+    //Se obtienen los productos de la base de datos
     private fun loadAndFilterProducts(isLactoseIntolerant: Boolean) {
         lifecycleScope.launch {
             productRepository.getAllProducts { products ->
@@ -88,7 +88,7 @@ class ListadoActivity : AppCompatActivity() {
             }
         }
     }
-
+    //recibe los productos, el presupuesto y el booleano si es intolerante o no
     private fun filterProductsByBudgetAndLactose(products: List<Producto>, budget: Double, isLactoseIntolerant: Boolean): List<Producto> {
         val filteredProducts = mutableListOf<Producto>()
         var currentTotal = 0.0
@@ -116,7 +116,7 @@ class ListadoActivity : AppCompatActivity() {
 
         return filteredProducts
     }
-
+    //recibe la lista de productos filtrados y muestra el total
     private fun updateTotal(products: List<Producto>) {
         val total = products.sumOf { it.precio }
         totalTextView.text = getString(
@@ -126,6 +126,7 @@ class ListadoActivity : AppCompatActivity() {
         )
     }
 
+    //al cambiar de estado el switch, vuelve a cargar los productos filtrados
     private fun setupListeners() {
         sinLactosaSwitch.setOnCheckedChangeListener { _, _ ->
             loadAndFilterProducts(sinLactosaSwitch.isChecked)

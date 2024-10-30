@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class FirebaseProductRepository {
+
     private val firestore = FirebaseFirestore.getInstance()
     private val productsCollection = firestore.collection("productos")
 
