@@ -15,10 +15,10 @@ public class RecuperarTodasApi {
         RecuperarDatosPastasSalsas RecuperarDatosPastasSalsas = new RecuperarDatosPastasSalsas();
         RecuperarDatosLeches RecuperarDatosLeches = new RecuperarDatosLeches();
         // Llamar al método cargarMultiplesPaginas desde la instancia de RecuperarDatos
-        RecuperarDatosBebidas.cargarMultiplesPaginas(1,3);
-        RecuperarDatosLeches.cargarMultiplesPaginas(1,3);
-        RecuperarDatosArrozLegumbres.cargarMultiplesPaginas(1,3);
-        RecuperarDatosHelados.cargarMultiplesPaginas(1,3);
-        RecuperarDatosPastasSalsas.cargarMultiplesPaginas(1,3);
+        RecuperarDatosBebidas.cargarMultiplesPaginas(1,4);
+        RecuperarDatosLeches.cargarMultiplesPaginas(1,4);
+        RecuperarDatosArrozLegumbres.cargarMultiplesPaginas(1,4);
+        RecuperarDatosHelados.cargarMultiplesPaginas(1,4);
+        RecuperarDatosPastasSalsas.cargarMultiplesPaginas(1,4);
     }
 }

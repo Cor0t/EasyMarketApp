@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 class FirebaseProductRepository {
 
     private val firestore = FirebaseFirestore.getInstance()
-    private val productsCollection = firestore.collection("productos")
+    private val productsCollection = firestore.collection("Leches")
 
     suspend fun getAllProducts(callback: (List<Producto>) -> Unit) {
         try {
