@@ -15,20 +15,23 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.HashMap;
 
-public class RecuperarDatosApi {
+public class RecuperarDatosArrozLegumbres {
     private final Gson gson = new Gson();
     private final OkHttpClient client = new OkHttpClient();
 
     public void cargarProductosEnFirebase(int pagina) {
+        // URL adaptada a la nueva API (Arroz y Legumbres)
         String url = String.format(
-                "https://www.lider.cl/supermercado/category/Frescos_y_Lácteos/Leche?page=%d",
+                "https://www.lider.cl/supermercado/category/Despensa/Arroz_y_Legumbres?page=%d",
                 pagina
         );
 
         Request request = new Request.Builder()
                 .url(url)
-                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
+                .header("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+                .header("accept-language", "es-CL,es;q=0.9")
+                .header("cache-control", "max-age=0")
+                .header("cookie", "vtc=Z_52Gzfyfh5woE6ZoaZR0w; _pxvid=841428b0-6192-11ef-afd2-11f96365fbf0; ...")
                 .build();
 
         new Thread(() -> {
@@ -67,7 +70,7 @@ public class RecuperarDatosApi {
                             productoData.put("sku", sku);
                             productoData.put("pagina", pagina); // Agregamos la página como referencia
 
-                            firestore.collection("productos")
+                            firestore.collection("Arroz_Legumbres")  // Cambié el nombre de la colección aquí
                                     .document(sku)
                                     .set(productoData)
                                     .addOnSuccessListener(unused ->

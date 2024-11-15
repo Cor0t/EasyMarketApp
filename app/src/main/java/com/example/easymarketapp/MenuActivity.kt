@@ -3,6 +3,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.easymarketapp.repository.LimpiarFireBase
+import com.example.easymarketapp.repository.RecuperarTodasApi
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.checkbox.MaterialCheckBox
 import com.google.android.material.textfield.TextInputEditText
@@ -23,6 +25,14 @@ class MenuActivity : AppCompatActivity() {
 
         //cuando se haga click, se ejecuta comenzarButton
         comenzarButton.setOnClickListener {
+            val limpiar = LimpiarFireBase()
+            limpiar.eliminarDocumentosDeColecciones()
+
+            val api = RecuperarTodasApi()
+            api.llamarCargarMultiplesPaginas()
+            
+
+
             //Verifica checkbox y convierte el texto a double
             val isLactoseIntolerant = lactoseIntolerantCheckBox.isChecked
             val presupuesto = presupuestoEditText.text.toString().toDoubleOrNull()
