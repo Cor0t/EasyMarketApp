@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="primaryColor">#6200EE</color>
-    <color name="primaryLightColor">#DFA9F8</color>
-    <color name="secondaryColor">#03DAC6</color>
-    <color name="backgroundLight">#FAFAFA</color>
+    <!-- Colores principales del Líder -->
+    <color name="primaryColor">#004691</color>        <!-- Azul Líder -->
+    <color name="primaryLightColor">#E6EEF7</color>   <!-- Azul claro para fondos -->
+    <color name="primaryDarkColor">#003366</color>    <!-- Azul oscuro para la barra de estado -->
+    <color name="secondaryColor">#FFB800</color>      <!-- Amarillo Líder -->
+    <color name="secondaryLightColor">#FFE082</color> <!-- Amarillo claro -->
+    <color name="secondaryDarkColor">#FFA000</color>  <!-- Amarillo oscuro -->
 
+    <!-- Colores de texto -->
+    <color name="primaryTextColor">#000000</color>
+    <color name="secondaryTextColor">#757575</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Colores de estado -->
+    <color name="success">#4CAF50</color>
+    <color name="error">#F44336</color>
+    <color name="warning">#FFC107</color>
 </resources>
