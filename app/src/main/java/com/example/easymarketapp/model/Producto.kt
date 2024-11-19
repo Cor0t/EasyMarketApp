@@ -7,6 +7,7 @@ data class Producto(
     val precio: Double = 0.0,
     val imagen: String = "",
     val pagina: Int = 0,
-    var islactoseIntolerant: Boolean = false,
-
-    )
+    val categoria: String = "",
+    val documentId: String = "",
+    var cantidad: Int = 1  // Nueva propiedad para contar repeticiones
+)

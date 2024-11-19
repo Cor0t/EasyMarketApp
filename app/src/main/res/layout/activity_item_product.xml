@@ -29,14 +29,26 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
+            android:layout_marginEnd="8dp"
             android:textAppearance="?attr/textAppearanceSubtitle1"
             android:textStyle="bold"
             android:maxLines="2"
             android:ellipsize="end"
             app:layout_constraintStart_toEndOf="@id/productImageView"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/deleteButton"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Nombre del Producto"/>
+
+        <ImageButton
+            android:id="@+id/deleteButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_delete"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:padding="8dp"
+            android:contentDescription="Eliminar producto"/>
 
         <TextView
             android:id="@+id/productBrandTextView"
@@ -52,6 +64,17 @@
             tools:text="Marca"/>
 
         <TextView
+            android:id="@+id/categoryTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="?android:attr/textColorSecondary"
+            app:layout_constraintStart_toEndOf="@id/productImageView"
+            app:layout_constraintTop_toBottomOf="@id/productBrandTextView"
+            tools:text="🥛 Lácteos"/>
+
+        <TextView
             android:id="@+id/productPriceTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -60,7 +83,7 @@
             android:textAppearance="?attr/textAppearanceHeadline6"
             android:textColor="?attr/colorPrimary"
             app:layout_constraintStart_toEndOf="@id/productImageView"
-            app:layout_constraintTop_toBottomOf="@id/productBrandTextView"
+            app:layout_constraintTop_toBottomOf="@id/categoryTextView"
             tools:text="$9.990"/>
 
         <com.google.android.material.chip.Chip
@@ -76,6 +99,18 @@
             app:layout_constraintTop_toTopOf="@id/productPriceTextView"
             app:layout_constraintBottom_toBottomOf="@id/productPriceTextView"
             tools:text="Sin Lactosa"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/cantidadChip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            app:chipBackgroundColor="@color/primaryColor"
+            android:textColor="@android:color/white"
+            app:layout_constraintStart_toEndOf="@id/productTagsTextView"
+            app:layout_constraintTop_toTopOf="@id/productPriceTextView"
+            app:layout_constraintBottom_toBottomOf="@id/productPriceTextView"
+            tools:text="x2"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

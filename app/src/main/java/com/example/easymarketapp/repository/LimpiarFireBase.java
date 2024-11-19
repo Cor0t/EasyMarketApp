@@ -20,8 +20,8 @@ public class LimpiarFireBase {
     }
 
     public void eliminarDocumentosDeColecciones(final OnCompleteListener<Void> listener) {
-        // Definir las colecciones a limpiar
-        List<String> colecciones = List.of("Bebidas", "Helados", "Leches", "Pastas_Salsas", "Arroz_Legumbres");
+        // Definir las colecciones a limpiar, quitamos "Bebidas"
+        List<String> colecciones = List.of("Helados", "Leches", "Pastas_Salsas", "Arroz_Legumbres");
 
         // Crear un TaskCompletionSource para monitorear todas las eliminaciones
         TaskCompletionSource<Void> taskCompletionSource = new TaskCompletionSource<>();
