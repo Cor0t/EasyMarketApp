@@ -16,43 +16,49 @@ import java.util.Locale
 
 class MenuActivity : AppCompatActivity() {
 
+    private lateinit var presupuestoEditText: TextInputEditText
+    private lateinit var lactoseIntolerantCheckBox: MaterialCheckBox
+    private lateinit var celiacCheckBox: MaterialCheckBox
+    private lateinit var comenzarButton: MaterialButton
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_menu)
 
-        val limpiar = LimpiarFireBase()
-        limpiar.eliminarDocumentosDeColecciones(object : OnCompleteListener<Void> {
-            override fun onComplete(task: Task<Void>) {
-                if (task.isSuccessful) {
-                    val api = RecuperarTodasApi()
-                    api.llamarCargarMultiplesPaginas()
-                } else {
-                    Toast.makeText(this@MenuActivity, "Error al eliminar documentos", Toast.LENGTH_SHORT).show()
-                }
-            }
-        })
-
-        // Referencia a los componentes de la interfaz
-        val comenzarButton: MaterialButton = findViewById(R.id.buttonStart)
-        val lactoseIntolerantCheckBox: MaterialCheckBox = findViewById(R.id.checkboxLactoseIntolerant)
-        val celiacCheckBox: MaterialCheckBox = findViewById(R.id.checkboxCeliac)
-        val presupuestoEditText: TextInputEditText = findViewById(R.id.editTextBudget)
+        // Inicializar vistas
+        presupuestoEditText = findViewById(R.id.editTextBudget)
+        lactoseIntolerantCheckBox = findViewById(R.id.checkboxLactoseIntolerant)
+        celiacCheckBox = findViewById(R.id.checkboxCeliac)
+        comenzarButton = findViewById(R.id.buttonStart)
 
         comenzarButton.setOnClickListener {
-            val isLactoseIntolerant = lactoseIntolerantCheckBox.isChecked
-            val isCeliac = celiacCheckBox.isChecked
-            val presupuesto = presupuestoEditText.text.toString().toDoubleOrNull()
+            val presupuestoText = presupuestoEditText.text.toString()
 
-            if (presupuesto == null) {
-                Toast.makeText(this, "Por favor, ingrese un presupuesto válido", Toast.LENGTH_SHORT).show()
+            if (presupuestoText.isBlank()) {
+                presupuestoEditText.error = "Por favor, ingrese un presupuesto"
                 return@setOnClickListener
             }
+
+            val presupuesto = try {
+                presupuestoText.toDouble()
+            } catch (e: NumberFormatException) {
+                presupuestoEditText.error = "Por favor, ingrese un número válido"
+                return@setOnClickListener
+            }
+
+            if (presupuesto <= 0) {
+                presupuestoEditText.error = "El presupuesto debe ser mayor a 0"
+                return@setOnClickListener
+            }
+
+            val isLactoseIntolerant = lactoseIntolerantCheckBox.isChecked
+            val isCeliac = celiacCheckBox.isChecked
 
             val mensaje = buildString {
                 append("Opciones seleccionadas:\n")
                 if (isLactoseIntolerant) append("- Intolerante a la lactosa\n")
                 if (isCeliac) append("- Celíaco\n")
-                append("Presupuesto: $${NumberFormat.getNumberInstance(Locale("CL")).format(presupuesto)}")
+                append("Presupuesto: $${String.format("%,.0f", presupuesto)}")
             }
 
             Toast.makeText(this, mensaje, Toast.LENGTH_LONG).show()

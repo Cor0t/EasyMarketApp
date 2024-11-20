@@ -1,5 +1,9 @@
 package com.example.easymarketapp.model
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class Producto(
     val sku: String = "",
     val nombre: String = "",
@@ -9,5 +13,5 @@ data class Producto(
     val pagina: Int = 0,
     val categoria: String = "",
     val documentId: String = "",
-    var cantidad: Int = 1  // Nueva propiedad para contar repeticiones
-)
+    var cantidad: Int = 1
+) : Parcelable

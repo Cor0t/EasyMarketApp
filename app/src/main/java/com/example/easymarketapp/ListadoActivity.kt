@@ -1,6 +1,6 @@
 package com.example.easymarketapp
 
-
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.easymarketapp.adapter.ProductAdapter
 import com.example.easymarketapp.model.Producto
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
@@ -22,9 +23,13 @@ class ListadoActivity : AppCompatActivity() {
     private lateinit var totalTextView: TextView
     private lateinit var sinLactosaSwitch: SwitchMaterial
     private lateinit var sinGlutenSwitch: SwitchMaterial
+    private lateinit var verOpcionesSimilaresButton: MaterialButton
+    private lateinit var aceptarButton: MaterialButton
     private lateinit var productAdapter: ProductAdapter
     private var filteredProducts: List<Producto> = emptyList()
+    private var allLoadedProducts: List<Producto> = emptyList()
     private var presupuesto: Double = 0.0
+    private var dialogoMostrado = false
     private val firestore = FirebaseFirestore.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +54,46 @@ class ListadoActivity : AppCompatActivity() {
         totalTextView = findViewById(R.id.totalTextView)
         sinLactosaSwitch = findViewById(R.id.sinLactosaSwitch)
         sinGlutenSwitch = findViewById(R.id.sinGlutenSwitch)
+        verOpcionesSimilaresButton = findViewById(R.id.verOpcionesSimilaresButton)
+        aceptarButton = findViewById(R.id.aceptarButton)
+    }
+
+    private fun setupListeners() {
+        sinLactosaSwitch.isChecked = intent.getBooleanExtra("isLactoseIntolerant", false)
+        sinGlutenSwitch.isChecked = intent.getBooleanExtra("isCeliac", false)
+
+        sinLactosaSwitch.setOnCheckedChangeListener { _, isChecked ->
+            loadAndFilterProducts(isChecked, sinGlutenSwitch.isChecked)
+        }
+
+        sinGlutenSwitch.setOnCheckedChangeListener { _, isChecked ->
+            loadAndFilterProducts(sinLactosaSwitch.isChecked, isChecked)
+        }
+
+        verOpcionesSimilaresButton.setOnClickListener {
+            if (!dialogoMostrado) {
+                mostrarDialogoConfirmacion()
+            } else {
+                mostrarOpcionesSimilares()
+            }
+        }
+
+        aceptarButton.setOnClickListener {
+            val productosSeleccionados = filteredProducts.filter { it.cantidad > 0 }
+
+            if (productosSeleccionados.isEmpty()) {
+                Toast.makeText(this, "No hay productos seleccionados", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val intent = Intent(this, ResumenCompraActivity::class.java).apply {
+                putExtra("presupuesto", presupuesto)
+                putExtra("isLactoseIntolerant", sinLactosaSwitch.isChecked)
+                putExtra("isCeliac", sinGlutenSwitch.isChecked)
+                putParcelableArrayListExtra("selectedProducts", ArrayList(productosSeleccionados))
+            }
+            startActivity(intent)
+        }
     }
 
     private fun setupToolbar() {
@@ -112,17 +157,10 @@ class ListadoActivity : AppCompatActivity() {
         )
         var completedCollections = 0
 
-        Log.d("ListadoActivity", "Iniciando carga de productos de ${collections.size} colecciones")
-
         collections.forEach { collectionName ->
-            Log.d("ListadoActivity", "Intentando cargar colección: $collectionName")
-
             firestore.collection(collectionName)
                 .get()
                 .addOnSuccessListener { querySnapshot: QuerySnapshot ->
-                    val productsInCollection = querySnapshot.documents.size
-                    Log.d("ListadoActivity", "Productos encontrados en $collectionName: $productsInCollection")
-
                     for (document: DocumentSnapshot in querySnapshot.documents) {
                         try {
                             val producto = Producto(
@@ -142,11 +180,9 @@ class ListadoActivity : AppCompatActivity() {
                     }
 
                     completedCollections++
-                    Log.d("ListadoActivity", "Colección $collectionName cargada. Completadas: $completedCollections/${collections.size}")
 
                     if (completedCollections == collections.size) {
-                        Log.d("ListadoActivity", "Todas las colecciones cargadas. Total productos: ${allProducts.size}")
-
+                        allLoadedProducts = allProducts
                         val filteredProducts = filterProductsByBudgetAndRestrictions(
                             allProducts,
                             presupuesto,
@@ -158,12 +194,6 @@ class ListadoActivity : AppCompatActivity() {
                             this@ListadoActivity.filteredProducts = filteredProducts
                             productAdapter.updateProducts(filteredProducts)
                             updateTotal(filteredProducts)
-
-                            Toast.makeText(
-                                this@ListadoActivity,
-                                "Se encontraron ${filteredProducts.size} productos dentro de tu presupuesto",
-                                Toast.LENGTH_SHORT
-                            ).show()
                         }
                     }
                 }
@@ -301,18 +331,141 @@ class ListadoActivity : AppCompatActivity() {
         )
     }
 
-    private fun setupListeners() {
-        // Establecer estados iniciales según los valores recibidos
-        sinLactosaSwitch.isChecked = intent.getBooleanExtra("isLactoseIntolerant", false)
-        sinGlutenSwitch.isChecked = intent.getBooleanExtra("isCeliac", false)
+    private fun mostrarDialogoConfirmacion() {
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("Advertencia")
+        builder.setMessage("Al agregar productos similares, el total podría superar el presupuesto establecido. ¿Desea continuar?")
 
-        // Configurar listeners para ambos switches
-        sinLactosaSwitch.setOnCheckedChangeListener { _, isChecked ->
-            loadAndFilterProducts(isChecked, sinGlutenSwitch.isChecked)
+        builder.setPositiveButton("Aceptar") { _, _ ->
+            dialogoMostrado = true
+            mostrarOpcionesSimilares()
         }
 
-        sinGlutenSwitch.setOnCheckedChangeListener { _, isChecked ->
-            loadAndFilterProducts(sinLactosaSwitch.isChecked, isChecked)
+        builder.setNegativeButton("Cancelar") { dialog, _ ->
+            dialog.dismiss()
         }
+
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    private fun mostrarOpcionesSimilares() {
+        if (filteredProducts.isEmpty()) {
+            Toast.makeText(
+                this,
+                "Primero debes tener productos en tu lista",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        val currentTotal = filteredProducts.sumOf { it.precio * it.cantidad }
+        val targetPricePerProduct = currentTotal / filteredProducts.size
+
+        val minPrice = targetPricePerProduct * 0.8
+        val maxPrice = targetPricePerProduct * 1.2
+
+        val opcionesSimilares = allLoadedProducts.filter { producto ->
+            val precioEnRango = producto.precio in minPrice..maxPrice
+            val cumpleRestricciones = when {
+                // Para productos lácteos cuando hay restricción de lactosa
+                sinLactosaSwitch.isChecked && producto.categoria == "Leches" -> {
+                    producto.nombre.lowercase().contains("sin lactosa") ||
+                            producto.nombre.lowercase().contains("sinlactosa") ||
+                            producto.nombre.lowercase().contains("deslactosado") ||
+                            producto.nombre.lowercase().contains("lactose free")
+                }
+                // Para helados, solo mostrar si no hay restricción de lactosa
+                producto.categoria == "Helados" -> !sinLactosaSwitch.isChecked
+                // Para productos con gluten
+                sinGlutenSwitch.isChecked && (producto.categoria == "Pastas_Salsas" ||
+                        producto.categoria == "Arroz_Legumbres") -> {
+                    when (producto.categoria) {
+                        "Pastas_Salsas" -> {
+                            if (producto.nombre.lowercase().contains("pasta") ||
+                                producto.nombre.lowercase().contains("fideos") ||
+                                producto.nombre.lowercase().contains("lasaña") ||
+                                producto.nombre.lowercase().contains("lasagna") ||
+                                producto.nombre.lowercase().contains("ravioles") ||
+                                producto.nombre.lowercase().contains("tallarines")
+                            ) {
+                                producto.nombre.lowercase().contains("sin gluten") ||
+                                        producto.nombre.lowercase().contains("singluten") ||
+                                        producto.nombre.lowercase().contains("gluten free")
+                            } else {
+                                true // Para salsas y otros productos
+                            }
+                        }
+                        "Arroz_Legumbres" -> {
+                            producto.nombre.lowercase().contains("arroz") ||
+                                    producto.nombre.lowercase().contains("quinoa") ||
+                                    producto.nombre.lowercase().contains("quinua") ||
+                                    producto.nombre.lowercase().contains("garbanzo") ||
+                                    producto.nombre.lowercase().contains("lenteja") ||
+                                    producto.nombre.lowercase().contains("poroto") ||
+                                    producto.nombre.lowercase().contains("frijol") ||
+                                    producto.nombre.lowercase().contains("arveja") ||
+                                    producto.nombre.lowercase().contains("sin gluten") ||
+                                    producto.nombre.lowercase().contains("singluten") ||
+                                    producto.nombre.lowercase().contains("gluten free")
+                        }
+                        else -> true
+                    }
+                }
+                else -> true // Si no hay restricciones
+            }
+
+            precioEnRango && cumpleRestricciones
+        }
+
+        val opcionesOrdenadas = opcionesSimilares.sortedBy {
+            Math.abs(it.precio - targetPricePerProduct)
+        }.take(10)
+
+        if (opcionesOrdenadas.isEmpty()) {
+            Toast.makeText(
+                this,
+                "No se encontraron opciones similares que cumplan con las restricciones dietéticas",
+                Toast.LENGTH_SHORT
+            ).show()
+            return
+        }
+
+        // Crear un mapa con los productos existentes, usando el nombre como clave
+        val productosAcumulados = filteredProducts.groupBy {
+            it.nombre
+        }.mapValues { (_, productos) ->
+            productos.first().copy(cantidad = productos.sumOf { it.cantidad })
+        }.toMutableMap()
+
+        // Agregar o actualizar con las nuevas opciones
+        var productosAgregados = 0
+        opcionesOrdenadas.forEach { nuevoProducto ->
+            val productoExistente = productosAcumulados[nuevoProducto.nombre]
+            if (productoExistente != null) {
+                // Si el producto ya existe, aumentar su cantidad
+                productosAcumulados[nuevoProducto.nombre] = productoExistente.copy(
+                    cantidad = productoExistente.cantidad + 1
+                )
+            } else {
+                // Si es un producto nuevo, agregarlo al mapa
+                productosAcumulados[nuevoProducto.nombre] = nuevoProducto.copy(cantidad = 1)
+            }
+            productosAgregados++
+        }
+
+        // Convertir el mapa actualizado a lista
+        val nuevaLista = productosAcumulados.values.toList()
+
+        // Actualizar la lista filtrada y la vista
+        filteredProducts = nuevaLista
+        productAdapter.updateProducts(nuevaLista)
+        updateTotal(nuevaLista)
+
+        Toast.makeText(
+            this,
+            "Se agregaron $productosAgregados productos similares a tu lista",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }
