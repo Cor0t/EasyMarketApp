@@ -98,10 +98,9 @@ class ResumenCompraActivity : AppCompatActivity() {
         }
 
         finishButton.setOnClickListener {
-            // Volver al listado
-            val intent = Intent(this, ListadoActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)  // Esto limpiará el stack de actividades
-            startActivity(intent)
+            // En lugar de crear un nuevo intent, simplemente finalizamos esta activity
+            // Esto nos devolverá al ListadoActivity que está debajo en el stack
+            // y mantendrá su estado anterior
             finish()
         }
     }

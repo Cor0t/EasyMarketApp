@@ -46,10 +46,21 @@ class ListadoActivity : AppCompatActivity() {
         setupToolbar()
         setupRecyclerView()
         setupListeners()
-        loadAndFilterProducts(
-            isLactoseIntolerant = intent.getBooleanExtra("isLactoseIntolerant", false),
-            isCeliac = intent.getBooleanExtra("isCeliac", false)
-        )
+
+        // Verificar si venimos de ResumenCompraActivity
+        val productosAnteriores = intent.getParcelableArrayListExtra<Producto>("selectedProducts")
+        if (productosAnteriores != null) {
+            // Si hay productos anteriores, los mostramos
+            filteredProducts = productosAnteriores
+            productAdapter.updateProducts(productosAnteriores)
+            updateTotal(productosAnteriores)
+        } else {
+            // Si no hay productos anteriores, cargamos normalmente
+            loadAndFilterProducts(
+                isLactoseIntolerant = intent.getBooleanExtra("isLactoseIntolerant", false),
+                isCeliac = intent.getBooleanExtra("isCeliac", false)
+            )
+        }
     }
 
     private fun initializeViews() {
