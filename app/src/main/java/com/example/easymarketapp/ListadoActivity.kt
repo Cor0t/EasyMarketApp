@@ -16,6 +16,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.DocumentSnapshot
+import android.app.Activity
 
 class ListadoActivity : AppCompatActivity() {
     private lateinit var toolbar: Toolbar
@@ -29,8 +30,11 @@ class ListadoActivity : AppCompatActivity() {
     private var filteredProducts: List<Producto> = emptyList()
     private var allLoadedProducts: List<Producto> = emptyList()
     private var presupuesto: Double = 0.0
-    private var dialogoMostrado = false
     private val firestore = FirebaseFirestore.getInstance()
+    companion object {
+        private const val REQUEST_PRODUCTOS_SIMILARES = 100
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,29 +74,61 @@ class ListadoActivity : AppCompatActivity() {
             loadAndFilterProducts(sinLactosaSwitch.isChecked, isChecked)
         }
 
+        // Modificar el listener de verOpcionesSimilaresButton
         verOpcionesSimilaresButton.setOnClickListener {
-            if (!dialogoMostrado) {
-                mostrarDialogoConfirmacion()
-            } else {
-                mostrarOpcionesSimilares()
+            if (filteredProducts.isEmpty()) {
+                Toast.makeText(
+                    this,
+                    "Primero debes tener productos en tu lista",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
             }
+
+            val intent = Intent(this, ProductosSimilaresActivity::class.java).apply {
+                putExtra("presupuesto", presupuesto)
+                putExtra("isLactoseIntolerant", sinLactosaSwitch.isChecked)
+                putExtra("isCeliac", sinGlutenSwitch.isChecked)
+                putParcelableArrayListExtra("productos_originales", ArrayList(allLoadedProducts))
+                putParcelableArrayListExtra("productos_actuales", ArrayList(filteredProducts))
+                putExtra(
+                    "precio_referencia",
+                    filteredProducts.sumOf { it.precio * it.cantidad } / filteredProducts.size)
+            }
+            startActivityForResult(intent, REQUEST_PRODUCTOS_SIMILARES)
         }
 
         aceptarButton.setOnClickListener {
             val productosSeleccionados = filteredProducts.filter { it.cantidad > 0 }
 
             if (productosSeleccionados.isEmpty()) {
-                Toast.makeText(this, "No hay productos seleccionados", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    "No hay productos seleccionados",
+                    Toast.LENGTH_SHORT
+                ).show()
                 return@setOnClickListener
             }
 
-            val intent = Intent(this, ResumenCompraActivity::class.java).apply {
-                putExtra("presupuesto", presupuesto)
-                putExtra("isLactoseIntolerant", sinLactosaSwitch.isChecked)
-                putExtra("isCeliac", sinGlutenSwitch.isChecked)
-                putParcelableArrayListExtra("selectedProducts", ArrayList(productosSeleccionados))
+            try {
+                val intent = Intent(this, ResumenCompraActivity::class.java)
+                intent.putExtra("presupuesto", presupuesto)
+                intent.putExtra("isLactoseIntolerant", sinLactosaSwitch.isChecked)
+                intent.putExtra("isCeliac", sinGlutenSwitch.isChecked)
+                // Asegúrate de que la lista no sea nula
+                intent.putParcelableArrayListExtra(
+                    "selectedProducts",
+                    ArrayList(productosSeleccionados)
+                )
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("ListadoActivity", "Error al iniciar ResumenCompraActivity", e)
+                Toast.makeText(
+                    this,
+                    "Error al mostrar el resumen",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-            startActivity(intent)
         }
     }
 
@@ -321,6 +357,41 @@ class ListadoActivity : AppCompatActivity() {
 
         return isPermitido
     }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_PRODUCTOS_SIMILARES && resultCode == Activity.RESULT_OK) {
+            val productosSeleccionados = data?.getParcelableArrayListExtra<Producto>("productos_seleccionados")
+            if (!productosSeleccionados.isNullOrEmpty()) {
+                // Actualizar lista de productos
+                val productosAcumulados = filteredProducts.associateBy(
+                    { it.sku },
+                    { it }
+                ).toMutableMap()
+
+                productosSeleccionados.forEach { nuevoProducto ->
+                    val productoExistente = productosAcumulados[nuevoProducto.sku]
+                    if (productoExistente != null) {
+                        productosAcumulados[nuevoProducto.sku] = productoExistente.copy(
+                            cantidad = productoExistente.cantidad + nuevoProducto.cantidad
+                        )
+                    } else {
+                        productosAcumulados[nuevoProducto.sku] = nuevoProducto
+                    }
+                }
+
+                val nuevaLista = productosAcumulados.values.toList()
+                filteredProducts = nuevaLista
+                productAdapter.updateProducts(nuevaLista)
+                updateTotal(nuevaLista)
+
+                Toast.makeText(
+                    this,
+                    "Se agregaron ${productosSeleccionados.size} productos a tu lista",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
 
     private fun updateTotal(products: List<Producto>) {
         val total = products.sumOf { it.precio * it.cantidad }
@@ -329,143 +400,5 @@ class ListadoActivity : AppCompatActivity() {
             String.format("%.0f", total),
             String.format("%.0f", presupuesto)
         )
-    }
-
-    private fun mostrarDialogoConfirmacion() {
-        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
-        builder.setTitle("Advertencia")
-        builder.setMessage("Al agregar productos similares, el total podría superar el presupuesto establecido. ¿Desea continuar?")
-
-        builder.setPositiveButton("Aceptar") { _, _ ->
-            dialogoMostrado = true
-            mostrarOpcionesSimilares()
-        }
-
-        builder.setNegativeButton("Cancelar") { dialog, _ ->
-            dialog.dismiss()
-        }
-
-        val dialog = builder.create()
-        dialog.show()
-    }
-
-    private fun mostrarOpcionesSimilares() {
-        if (filteredProducts.isEmpty()) {
-            Toast.makeText(
-                this,
-                "Primero debes tener productos en tu lista",
-                Toast.LENGTH_SHORT
-            ).show()
-            return
-        }
-
-        val currentTotal = filteredProducts.sumOf { it.precio * it.cantidad }
-        val targetPricePerProduct = currentTotal / filteredProducts.size
-
-        val minPrice = targetPricePerProduct * 0.8
-        val maxPrice = targetPricePerProduct * 1.2
-
-        val opcionesSimilares = allLoadedProducts.filter { producto ->
-            val precioEnRango = producto.precio in minPrice..maxPrice
-            val cumpleRestricciones = when {
-                // Para productos lácteos cuando hay restricción de lactosa
-                sinLactosaSwitch.isChecked && producto.categoria == "Leches" -> {
-                    producto.nombre.lowercase().contains("sin lactosa") ||
-                            producto.nombre.lowercase().contains("sinlactosa") ||
-                            producto.nombre.lowercase().contains("deslactosado") ||
-                            producto.nombre.lowercase().contains("lactose free")
-                }
-                // Para helados, solo mostrar si no hay restricción de lactosa
-                producto.categoria == "Helados" -> !sinLactosaSwitch.isChecked
-                // Para productos con gluten
-                sinGlutenSwitch.isChecked && (producto.categoria == "Pastas_Salsas" ||
-                        producto.categoria == "Arroz_Legumbres") -> {
-                    when (producto.categoria) {
-                        "Pastas_Salsas" -> {
-                            if (producto.nombre.lowercase().contains("pasta") ||
-                                producto.nombre.lowercase().contains("fideos") ||
-                                producto.nombre.lowercase().contains("lasaña") ||
-                                producto.nombre.lowercase().contains("lasagna") ||
-                                producto.nombre.lowercase().contains("ravioles") ||
-                                producto.nombre.lowercase().contains("tallarines")
-                            ) {
-                                producto.nombre.lowercase().contains("sin gluten") ||
-                                        producto.nombre.lowercase().contains("singluten") ||
-                                        producto.nombre.lowercase().contains("gluten free")
-                            } else {
-                                true // Para salsas y otros productos
-                            }
-                        }
-                        "Arroz_Legumbres" -> {
-                            producto.nombre.lowercase().contains("arroz") ||
-                                    producto.nombre.lowercase().contains("quinoa") ||
-                                    producto.nombre.lowercase().contains("quinua") ||
-                                    producto.nombre.lowercase().contains("garbanzo") ||
-                                    producto.nombre.lowercase().contains("lenteja") ||
-                                    producto.nombre.lowercase().contains("poroto") ||
-                                    producto.nombre.lowercase().contains("frijol") ||
-                                    producto.nombre.lowercase().contains("arveja") ||
-                                    producto.nombre.lowercase().contains("sin gluten") ||
-                                    producto.nombre.lowercase().contains("singluten") ||
-                                    producto.nombre.lowercase().contains("gluten free")
-                        }
-                        else -> true
-                    }
-                }
-                else -> true // Si no hay restricciones
-            }
-
-            precioEnRango && cumpleRestricciones
-        }
-
-        val opcionesOrdenadas = opcionesSimilares.sortedBy {
-            Math.abs(it.precio - targetPricePerProduct)
-        }.take(10)
-
-        if (opcionesOrdenadas.isEmpty()) {
-            Toast.makeText(
-                this,
-                "No se encontraron opciones similares que cumplan con las restricciones dietéticas",
-                Toast.LENGTH_SHORT
-            ).show()
-            return
-        }
-
-        // Crear un mapa con los productos existentes, usando el nombre como clave
-        val productosAcumulados = filteredProducts.groupBy {
-            it.nombre
-        }.mapValues { (_, productos) ->
-            productos.first().copy(cantidad = productos.sumOf { it.cantidad })
-        }.toMutableMap()
-
-        // Agregar o actualizar con las nuevas opciones
-        var productosAgregados = 0
-        opcionesOrdenadas.forEach { nuevoProducto ->
-            val productoExistente = productosAcumulados[nuevoProducto.nombre]
-            if (productoExistente != null) {
-                // Si el producto ya existe, aumentar su cantidad
-                productosAcumulados[nuevoProducto.nombre] = productoExistente.copy(
-                    cantidad = productoExistente.cantidad + 1
-                )
-            } else {
-                // Si es un producto nuevo, agregarlo al mapa
-                productosAcumulados[nuevoProducto.nombre] = nuevoProducto.copy(cantidad = 1)
-            }
-            productosAgregados++
-        }
-
-        // Convertir el mapa actualizado a lista
-        val nuevaLista = productosAcumulados.values.toList()
-
-        // Actualizar la lista filtrada y la vista
-        filteredProducts = nuevaLista
-        productAdapter.updateProducts(nuevaLista)
-        updateTotal(nuevaLista)
-
-        Toast.makeText(
-            this,
-            "Se agregaron $productosAgregados productos similares a tu lista",
-            Toast.LENGTH_SHORT
-        ).show()
     }
 }

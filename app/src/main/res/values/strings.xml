@@ -16,5 +16,7 @@
     <string name="products_list_lactose_free">Productos Sin Lactosa</string>
     <string name="total_format">Total: $%s</string>
     <string name="total_format_with_budget">Total: $%s / Presupuesto: $%s</string>
+    <string name="must_have_products">Primero debes tener productos en tu lista</string>
+    <string name="price_format">$%s</string>
 
 </resources>
